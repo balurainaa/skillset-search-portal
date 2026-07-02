@@ -4,14 +4,13 @@ import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 
-import lombok.Builder;
 import lombok.Data;
 
 import lombok.NoArgsConstructor;
 
 @Entity
 
-@Table(name = "employee")
+@Table(name = "proficiency")
 
 @Data
 
@@ -19,20 +18,14 @@ import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 
-@Builder
-
-public class Employee {
+public class Proficiency {
 
     @Id
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private Integer employeeId;
+    private Integer proficiencyId;
 
-    private String firstName;
-
-    private String lastName;
-
-    private String email;
+    private String name;
 
 }

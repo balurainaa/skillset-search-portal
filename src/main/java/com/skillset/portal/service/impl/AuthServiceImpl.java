@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map; // ---> ADDED THIS CRITICAL IMPORT TO FIX THE MAP COMPILATION ERROR
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -21,10 +22,10 @@ public class AuthServiceImpl implements AuthService {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private UserTokenRepository userTokenRepository; // Uses your existing repository
+    private UserTokenRepository userTokenRepository;
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider; // Uses your existing provider
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -35,7 +36,6 @@ public class AuthServiceImpl implements AuthService {
         Employee employee = employeeRepository.findByEmail(loginDto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        // If storing plain text passwords for testing, use: if(!loginDto.getPassword().equals(employee.getPassword()))
         if (!passwordEncoder.matches(loginDto.getPassword(), employee.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
@@ -45,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtTokenProvider.generateToken(employee.getEmail());
 
-        // Uses your existing UserToken entity
         UserToken userToken = new UserToken();
         userToken.setToken(token);
         userToken.setEmployee(employee);
@@ -54,5 +53,33 @@ public class AuthServiceImpl implements AuthService {
         userTokenRepository.save(userToken);
 
         return token;
+    }
+
+    @Override
+    @Transactional
+    public void register(Map<String, String> registerData) {
+        String email = registerData.get("email");
+        String password = registerData.get("password");
+        String firstName = registerData.get("firstName");
+        String lastName = registerData.get("lastName");
+
+        // 1. Check if the email is already registered
+        if (employeeRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Email is already registered!");
+        }
+
+        // 2. Create and populate your Employee entity
+        Employee employee = new Employee();
+        employee.setEmail(email);
+
+        // Encrypt the password before storing it
+        employee.setPassword(passwordEncoder.encode(password));
+
+        // Match these with whatever setter fields your Employee entity actually has:
+        if(firstName != null) employee.setFirstName(firstName);
+        if(lastName != null) employee.setLastName(lastName);
+
+        // 3. Save the new employee to MySQL
+        employeeRepository.save(employee);
     }
 }

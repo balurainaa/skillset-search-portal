@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 
 @RequestMapping("/api/skills")
-
+@CrossOrigin(origins = " *")
 public class EmployeeSkillController {
 
     @Autowired

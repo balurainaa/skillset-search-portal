@@ -23,6 +23,7 @@ public class Employee {
     private LocalDate dateOfJoining;
     private Double yearOfExperience;
     private Integer reportingTo;
+    private String password;
 
     @ManyToOne
     @JoinColumn(name = "role_id")

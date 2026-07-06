@@ -2,6 +2,8 @@ package com.skillset.portal.service.impl;
 
 import com.skillset.portal.dto.AddProjectRequestDto;
 import com.skillset.portal.dto.AddCertificationRequestDto;
+import com.skillset.portal.dto.EmployeeProfileDto;
+import com.skillset.portal.dto.EmployeeRegistrationDto;
 import com.skillset.portal.entity.*;
 import com.skillset.portal.repository.*;
 import com.skillset.portal.service.EmployeeProfileService;
@@ -83,5 +85,15 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                 .stream()
                 .map(Certification::getCertificationName)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String registerEmployee(EmployeeRegistrationDto registrationDto) {
+        return "";
+    }
+
+    @Override
+    public EmployeeProfileDto getEmployeeProfile(Integer employeeId) {
+        return null;
     }
 }

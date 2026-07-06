@@ -2,6 +2,9 @@ package com.skillset.portal.service;
 
 import com.skillset.portal.dto.AddProjectRequestDto;
 import com.skillset.portal.dto.AddCertificationRequestDto;
+import com.skillset.portal.dto.EmployeeProfileDto;
+import com.skillset.portal.dto.EmployeeRegistrationDto;
+
 import java.util.List;
 
 public interface EmployeeProfileService {
@@ -10,4 +13,6 @@ public interface EmployeeProfileService {
     String addCertification(AddCertificationRequestDto certDto);
     List<String> getEmployeeProjects(Integer employeeId);
     List<String> getEmployeeCertifications(Integer employeeId);
+    String registerEmployee(EmployeeRegistrationDto registrationDto);
+    EmployeeProfileDto getEmployeeProfile(Integer employeeId);
 }

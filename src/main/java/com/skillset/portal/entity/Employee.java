@@ -1,38 +1,31 @@
 package com.skillset.portal.entity;
 
 import jakarta.persistence.*;
-
 import lombok.AllArgsConstructor;
-
-import lombok.Builder;
 import lombok.Data;
-
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 
 @Entity
-
 @Table(name = "employee")
-
 @Data
-
 @NoArgsConstructor
-
 @AllArgsConstructor
-
-@Builder
-
 public class Employee {
 
     @Id
-
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Integer employeeId;
 
     private String firstName;
-
     private String lastName;
-
     private String email;
+    private Long mobile;
+    private LocalDate dateOfJoining;
+    private Double yearOfExperience;
+    private Integer reportingTo;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 }

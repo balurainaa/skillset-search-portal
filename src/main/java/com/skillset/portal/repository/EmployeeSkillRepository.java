@@ -10,4 +10,6 @@ public interface EmployeeSkillRepository extends JpaRepository<EmployeeSkill, In
 
     List<EmployeeSkill> findBySkill_SkillName(String skillName);
 
+    List<EmployeeSkill> findByEmployee_EmployeeId(Integer employeeId);
+
 }

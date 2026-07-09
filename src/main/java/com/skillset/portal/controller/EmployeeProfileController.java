@@ -7,8 +7,8 @@ import com.skillset.portal.dto.EmployeeProfileDto;
 import com.skillset.portal.service.EmployeeProfileService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity; // Added missing import
-import org.springframework.security.access.prepost.PreAuthorize; // Added missing import
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,57 +20,89 @@ public class EmployeeProfileController {
     @Autowired
     private EmployeeProfileService employeeProfileService;
 
-    // 1. Unified Master Registration Endpoint (Returns ResponseEntity cleanly)
+    // 1. Unified Master Registration Endpoint
+    // Accessible by both Roles since an employee completes registration details after auth setup
     @PostMapping("/submit")
-    public ResponseEntity<String> registerEmployee(@Valid @RequestBody EmployeeRegistrationDto registrationDto) {
-        String response = employeeProfileService.registerEmployee(registrationDto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<String> submitProfile(@Valid @RequestBody EmployeeRegistrationDto dto) {
+        // 💡 FIX: Pass null for the ID since it's a new registration row discovery
+        String resultMessage = employeeProfileService.registerEmployee(null, dto);
+        return ResponseEntity.ok(resultMessage);
     }
 
-    // 2. Fetch Complete Aggregated Profile (The Profile GET View)
+    // 2. Fetch Complete Aggregated Profile
+    // Both Employees and Admins can view profile layouts
     @GetMapping("/{employeeId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public EmployeeProfileDto getEmployeeProfile(@PathVariable Integer employeeId) {
         return employeeProfileService.getEmployeeProfile(employeeId);
     }
 
-    // 3. EDITING: Admins can update any ID; Standard Employees can ONLY update their own matching ID
-    @PutMapping("/update/{employeeId}")
+    // 3. EDITING: Admins or standard Employees can update profiles
+    /*@PutMapping("/update/{employeeId}")
+    //@PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #employeeId))")
     public ResponseEntity<String> updateProfile(@PathVariable Integer employeeId, @Valid @RequestBody EmployeeRegistrationDto dto) {
-        // Your logic to update the profile details will be called here
-        return ResponseEntity.ok("Profile updated successfully");
+        String resultMessage = employeeProfileService.registerEmployee(dto);
+        return ResponseEntity.ok(resultMessage);
+    }*/
+
+    @PutMapping("/update/{employeeId}")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and principal.username == #pathVariable['employeeId'])")
+    public ResponseEntity<String> updateProfile(@PathVariable("employeeId") Integer employeeId, @Valid @RequestBody EmployeeRegistrationDto dto) {
+
+        // 💡 FIX: Add 'employeeId' as the first argument inside the parentheses here:
+        String resultMessage = employeeProfileService.registerEmployee(employeeId, dto);
+
+        return ResponseEntity.ok(resultMessage);
     }
 
-    // 4. DELETING: Admins only
+    /*@PutMapping("/update/{employeeId}")
+
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #employeeId))")
+
+    public ResponseEntity<String> updateProfile(@PathVariable Integer employeeId, @Valid @RequestBody EmployeeRegistrationDto dto) {
+
+        String response = employeeProfileService.updateEmployee(employeeId, dto);
+
+        return ResponseEntity.ok(response);
+
+    }*/
+
+    // 4. DELETING: strictly locked to ADMIN users only
     @DeleteMapping("/delete/{employeeId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteProfile(@PathVariable Integer employeeId) {
-        // Your logic to delete the profile will be called here
-        return ResponseEntity.ok("Employee profile deleted successfully by Admin");
+        String resultMessage = employeeProfileService.deleteEmployeeProfile(employeeId);
+        return ResponseEntity.ok(resultMessage);
     }
 
     // 5. Individual Component Actions (Legacy endpoints)
+
+    // Only administrators can assign user organizational roles
     @PostMapping("/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public String assignRole(@RequestParam Integer employeeId, @RequestParam String roleName) {
         return employeeProfileService.assignRole(employeeId, roleName);
     }
 
+    // Employees and admins can add projects to profiles
     @PostMapping("/project")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public String addProject(@Valid @RequestBody AddProjectRequestDto projectRequest) {
         return employeeProfileService.addProject(projectRequest);
     }
 
+    // Employees and admins can add certifications to profiles
     @PostMapping("/certification")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public String addCertification(@Valid @RequestBody AddCertificationRequestDto certRequest) {
         return employeeProfileService.addCertification(certRequest);
     }
 
-    @GetMapping("/projects/{employeeId}")
-    public List<String> getProjects(@PathVariable Integer employeeId) {
-        return employeeProfileService.getEmployeeProjects(employeeId);
-    }
+    // Viewing sub-collections is viewable by both roles
 
     @GetMapping("/certifications/{employeeId}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public List<String> getCertifications(@PathVariable Integer employeeId) {
         return employeeProfileService.getEmployeeCertifications(employeeId);
     }

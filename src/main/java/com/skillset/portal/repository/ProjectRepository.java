@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
     List<Project> findByEmployee_EmployeeId(Integer employeeId);
+
+    void deleteByEmployee_EmployeeId(Integer employeeId);
 }

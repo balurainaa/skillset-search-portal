@@ -10,6 +10,8 @@ public interface EmployeeSkillRepository extends JpaRepository<EmployeeSkill, In
 
     List<EmployeeSkill> findBySkill_SkillName(String skillName);
 
+    void deleteByEmployee_EmployeeId(Integer employeeId);
+
     List<EmployeeSkill> findByEmployee_EmployeeId(Integer employeeId);
 
 }

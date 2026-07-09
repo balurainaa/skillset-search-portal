@@ -18,7 +18,10 @@ public class Employee {
 
     private String firstName;
     private String lastName;
+
+    @Column(unique = true, nullable = false)
     private String email;
+
     private Long mobile;
     private LocalDate dateOfJoining;
     private Double yearOfExperience;

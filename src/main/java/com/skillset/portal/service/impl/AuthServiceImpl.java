@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Map; // ---> ADDED THIS CRITICAL IMPORT TO FIX THE MAP COMPILATION ERROR
+import java.util.Map;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -25,11 +25,32 @@ public class AuthServiceImpl implements AuthService {
     private UserTokenRepository userTokenRepository;
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtTokenProvider jwtTokenProvider; // Using this instance!
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Override
+    @Transactional
+    public void register(Map<String, String> registerData) {
+        String email = registerData.get("email");
+        String password = registerData.get("password");
+        String firstName = registerData.get("firstName");
+        String lastName = registerData.get("lastName");
+
+        if (employeeRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Email is already registered!");
+        }
+
+        Employee employee = new Employee();
+        employee.setEmail(email);
+        employee.setPassword(passwordEncoder.encode(password));
+
+        if(firstName != null) employee.setFirstName(firstName);
+        if(lastName != null) employee.setLastName(lastName);
+
+        employeeRepository.save(employee);
+    }
     @Override
     @Transactional
     public String login(LoginRequestDto loginDto) {
@@ -40,46 +61,12 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid email or password");
         }
 
-        // Clean out any old tokens for this employee before generating a new one
-        userTokenRepository.deleteByEmployee_EmployeeId(employee.getEmployeeId());
-
-        String token = jwtTokenProvider.generateToken(employee.getEmail());
-
-        UserToken userToken = new UserToken();
-        userToken.setToken(token);
-        userToken.setEmployee(employee);
-        userToken.setExpiryDate(LocalDateTime.now().plusHours(8));
-
-        userTokenRepository.save(userToken);
-
+        // Clean, direct token generation using just the user's email address
+        // Inside AuthServiceImpl.java login method
+        String roleName = employee.getRole() != null ? employee.getRole().getRoleName() : "EMPLOYEE";
+        String token = jwtTokenProvider.generateToken(employee.getEmail(), roleName);
         return token;
     }
 
-    @Override
-    @Transactional
-    public void register(Map<String, String> registerData) {
-        String email = registerData.get("email");
-        String password = registerData.get("password");
-        String firstName = registerData.get("firstName");
-        String lastName = registerData.get("lastName");
 
-        // 1. Check if the email is already registered
-        if (employeeRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email is already registered!");
-        }
-
-        // 2. Create and populate your Employee entity
-        Employee employee = new Employee();
-        employee.setEmail(email);
-
-        // Encrypt the password before storing it
-        employee.setPassword(passwordEncoder.encode(password));
-
-        // Match these with whatever setter fields your Employee entity actually has:
-        if(firstName != null) employee.setFirstName(firstName);
-        if(lastName != null) employee.setLastName(lastName);
-
-        // 3. Save the new employee to MySQL
-        employeeRepository.save(employee);
-    }
 }

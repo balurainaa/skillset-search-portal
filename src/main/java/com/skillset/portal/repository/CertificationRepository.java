@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CertificationRepository extends JpaRepository<Certification, Integer> {
     List<Certification> findByEmployee_EmployeeId(Integer employeeId);
+
+    void deleteByEmployee_EmployeeId(Integer employeeId);
 }

@@ -16,18 +16,6 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    // --- YOUR EXISTING LOGIN METHOD ---
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginDto) {
-        String token = authService.login(loginDto);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-        response.put("type", "Bearer");
-
-        return ResponseEntity.ok(response);
-    }
-
     // --- THE MISSING REGISTER METHOD YOU NEED TO ADD ---
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerData) {
@@ -46,4 +34,17 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    // --- YOUR EXISTING LOGIN METHOD ---
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequestDto loginDto) {
+        String token = authService.login(loginDto);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        response.put("type", "Bearer");
+
+        return ResponseEntity.ok(response);
+    }
+
+
 }

@@ -13,6 +13,12 @@ public interface EmployeeProfileService {
     String addCertification(AddCertificationRequestDto certDto);
     List<String> getEmployeeProjects(Integer employeeId);
     List<String> getEmployeeCertifications(Integer employeeId);
-    String registerEmployee(EmployeeRegistrationDto registrationDto);
+    //String registerEmployee(EmployeeRegistrationDto registrationDto);
+
+    //String registerEmployee(EmployeeRegistrationDto registrationDto);
+
+    String registerEmployee(Integer employeeId, EmployeeRegistrationDto registrationDto);
     EmployeeProfileDto getEmployeeProfile(Integer employeeId);
+
+    String deleteEmployeeProfile(Integer employeeId);
 }

@@ -15,25 +15,30 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-
 @RequestMapping("/api/skills")
-@CrossOrigin(origins = " *")
 public class EmployeeSkillController {
 
     @Autowired
-
     private EmployeeSkillService employeeSkillService;
 
-    @PostMapping
+    /*@PostMapping
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and principal.username == #pathVariable['employeeId'])")
+    public REmployeeSkillDto addSkill(
+            @PathVariable("employeeSkillId") Integer employeeSkillId,
+            @Valid @RequestBody AddSkillRequestDto requestDto) {
 
-    public EmployeeSkillDto addSkill(@Valid @RequestBody AddSkillRequestDto requestDto) {
+        EmployeeSkillDto updatedSkill = employeeSkillService.updateSkill(employeeSkillId, requestDto);
+        return ResponseEntity.ok(updatedSkill);
+    }*/
+
+    @PostMapping
+    public EmployeeSkillDto addSkill(@RequestBody AddSkillRequestDto requestDto) {
 
         return employeeSkillService.addSkill(requestDto);
 
     }
 
     @GetMapping("/search")
-
     public List<EmployeeSkillDto> searchBySkill(@RequestParam String skillName) {
 
         return employeeSkillService.searchBySkill(skillName);

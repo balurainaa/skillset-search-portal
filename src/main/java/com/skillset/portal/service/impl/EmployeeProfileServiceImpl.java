@@ -4,13 +4,15 @@ import com.skillset.portal.dto.AddProjectRequestDto;
 import com.skillset.portal.dto.AddCertificationRequestDto;
 import com.skillset.portal.dto.EmployeeProfileDto;
 import com.skillset.portal.dto.EmployeeRegistrationDto;
-import com.skillset.portal.dto.EmployeeSkillDto; // Added for structural mapping
+import com.skillset.portal.dto.EmployeeSkillDto;
 import com.skillset.portal.entity.*;
 import com.skillset.portal.repository.*;
 import com.skillset.portal.service.EmployeeProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Added for database consistency
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +32,6 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
     @Autowired
     private CertificationRepository certificationRepository;
 
-    // --- ADDED INJECTIONS TO SUPPORT NEW METHODS ---
     @Autowired
     private SkillRepository skillRepository;
 
@@ -39,6 +40,53 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
 
     @Autowired
     private EmployeeSkillRepository employeeSkillRepository;
+
+    @Override
+    @Transactional
+    public String registerEmployee(Integer employeeId, EmployeeRegistrationDto registrationDto) {
+
+        Employee employee;
+
+
+        // 1. Get the true, verified email of the logged-in user from their token
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUserEmail = authentication.getName(); // This is the username/email from the JWT
+
+        // 💡 FIX: Split logic securely
+        if (employeeId == null) {
+            // Handle POST /submit:
+            // 🛡️ SECURITY FIX: Ignore the email in the JSON body! Look up by the token email instead.
+            employee = employeeRepository.findByEmail(loggedInUserEmail)
+                    .orElseThrow(() -> new RuntimeException("Account not found for logged-in user: " + loggedInUserEmail));
+        } else {
+            // Handle PUT /update/{employeeId}: Look up by URL ID
+            employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new RuntimeException("Account with ID " + employeeId + " not found."));
+
+            // 🛡️ SECURITY CHECK: Ensure the logged-in user owns this specific profile ID
+            if (!employee.getEmail().equalsIgnoreCase(loggedInUserEmail)) {
+                throw new RuntimeException("Access Denied! You cannot modify another user's account details.");
+            }
+        }
+
+        Role role = roleRepository.findByRoleName(registrationDto.getRoleName())
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setRoleName(registrationDto.getRoleName());
+                    return roleRepository.save(newRole);
+                });
+        // --- Keep the rest of your mapping code exactly the same ---
+        employee.setFirstName(registrationDto.getFirstName());
+        employee.setLastName(registrationDto.getLastName());
+        employee.setMobile(registrationDto.getMobile());
+        employee.setDateOfJoining(registrationDto.getDateOfJoining());
+        employee.setYearOfExperience(registrationDto.getYearOfExperience());
+        employee.setReportingTo(registrationDto.getReportingTo());
+        employee.setRole(role);
+
+        employee = employeeRepository.save(employee);
+        return "Employee profile processed successfully for ID: " + employee.getEmployeeId();
+    }
 
     @Override
     public String assignRole(Integer employeeId, String roleName) {
@@ -99,11 +147,22 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                 .collect(Collectors.toList());
     }
 
-    // --- COMPLETED METHODS TARGETING THE NEW REGISTRATION PROFILE WORKFLOW ---
-    @Override
+    // --- UPDATED WORKFLOW: PREVENTS DUPLICATING DATABASE ROWS ---
+    // --- UPDATED WORKFLOW: PREVENTS DUPLICATING DATABASE ROWS ---
+    /*@Override
     @Transactional
-    public String registerEmployee(EmployeeRegistrationDto registrationDto) {
-        // 1. Fetch or create Role
+    public String registerEmployee(Integer employeeId, EmployeeRegistrationDto registrationDto) { // 💡 Added employeeId parameter
+
+        // 1. Fetch the targeted employee row by the URL ID
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Account with ID " + employeeId + " not found."));
+
+        // 2. 🛡️ SECURITY CHECK: Ensure the email in the DTO matches the database row owner
+        if (!employee.getEmail().equalsIgnoreCase(registrationDto.getEmail())) {
+            throw new RuntimeException("Email mismatch! You cannot modify another user's account details.");
+        }
+
+        // 3. Fetch or create the Role
         Role role = roleRepository.findByRoleName(registrationDto.getRoleName())
                 .orElseGet(() -> {
                     Role newRole = new Role();
@@ -111,70 +170,20 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                     return roleRepository.save(newRole);
                 });
 
-        // 2. Build core employee entity
-        Employee employee = new Employee();
+        // 4. Map the update fields safely
         employee.setFirstName(registrationDto.getFirstName());
         employee.setLastName(registrationDto.getLastName());
-        employee.setEmail(registrationDto.getEmail());
         employee.setMobile(registrationDto.getMobile());
         employee.setDateOfJoining(registrationDto.getDateOfJoining());
         employee.setYearOfExperience(registrationDto.getYearOfExperience());
         employee.setReportingTo(registrationDto.getReportingTo());
         employee.setRole(role);
 
+        // 5. Save the updated entity
         employee = employeeRepository.save(employee);
 
-        // 3. Associate skill data metrics if populated
-        if (registrationDto.getSkillName() != null && !registrationDto.getSkillName().trim().isEmpty()) {
-            Skill skill = skillRepository.findBySkillName(registrationDto.getSkillName())
-                    .orElseGet(() -> {
-                        Skill newSkill = new Skill();
-                        newSkill.setSkillName(registrationDto.getSkillName());
-                        return skillRepository.save(newSkill);
-                    });
-
-            Proficiency proficiency = proficiencyRepository.findByName(registrationDto.getProficiencyName())
-                    .orElseGet(() -> {
-                        Proficiency newProf = new Proficiency();
-                        newProf.setName(registrationDto.getProficiencyName());
-                        return proficiencyRepository.save(newProf);
-                    });
-
-            EmployeeSkill empSkill = new EmployeeSkill();
-            empSkill.setEmployee(employee);
-            empSkill.setSkill(skill);
-            empSkill.setProficiency(proficiency);
-            empSkill.setYearsWorked(registrationDto.getSkillExperience());
-
-            employeeSkillRepository.save(empSkill);
-        }
-
-        // 4. Save list collections of projects
-        if (registrationDto.getProjects() != null) {
-            for (String projName : registrationDto.getProjects()) {
-                if (!projName.trim().isEmpty()) {
-                    Project project = new Project();
-                    project.setProjectName(projName);
-                    project.setEmployee(employee);
-                    projectRepository.save(project);
-                }
-            }
-        }
-
-        // 5. Save list collections of certifications
-        if (registrationDto.getCertifications() != null) {
-            for (String certName : registrationDto.getCertifications()) {
-                if (!certName.trim().isEmpty()) {
-                    Certification cert = new Certification();
-                    cert.setCertificationName(certName);
-                    cert.setEmployee(employee);
-                    certificationRepository.save(cert);
-                }
-            }
-        }
-
-        return "Employee registered successfully with ID: " + employee.getEmployeeId();
-    }
+        return "Employee profile updated successfully for ID: " + employee.getEmployeeId();
+    }*/
 
     @Override
     public EmployeeProfileDto getEmployeeProfile(Integer employeeId) {
@@ -205,5 +214,24 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
                 projects,
                 certifications
         );
+    }
+
+    @Override
+    @Transactional
+    public String deleteEmployeeProfile(Integer employeeId) {
+        // 1. Verify the employee exists
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + employeeId));
+
+        // 2. MANUALLY CLEAR CHILD RECORDS FIRST to satisfy the MySQL constraint
+        // (Inject these repositories at the top of your file if you haven't already)
+        employeeSkillRepository.deleteByEmployee_EmployeeId(employeeId);
+        projectRepository.deleteByEmployee_EmployeeId(employeeId);
+        certificationRepository.deleteByEmployee_EmployeeId(employeeId);
+
+        // 3. Now it is safe to delete the parent employee row!
+        employeeRepository.delete(employee);
+
+        return "Employee profile and all associated data with ID: " + employeeId + " deleted successfully.";
     }
 }

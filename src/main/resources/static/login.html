@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - Skillset Search Portal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <span class="navbar-brand">Skillset Search Portal</span>
+    </div>
+</nav>
+<div class="container" style="max-width: 700px;">
+    <div class="card" id="loginCard">
+        <div class="card-body">
+            <h5 class="card-title">Login</h5>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" id="login_email" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password *</label>
+                    <input type="password" class="form-control" id="login_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div id="loginMsg" class="msg mt-3"></div>
+            </form>
+            <hr>
+            <p class="mb-0">New employee? <a href="#" id="showRegisterLink">Register here</a></p>
+        </div>
+    </div>
+
+    <div class="card" id="registerCard" style="display:none;">
+        <div class="card-body">
+            <h5 class="card-title">Register Employee</h5>
+            <p class="text-muted">Creates your employee profile so you can log in. An admin can assign your role/skills/projects afterward if needed.</p>
+            <form id="registerForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" class="form-control" id="reg_firstName" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" class="form-control" id="reg_lastName" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="reg_email" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="reg_password" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mobile *</label>
+                        <input type="number" class="form-control" id="reg_mobile" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Joining *</label>
+                        <input type="date" class="form-control" id="reg_dateOfJoining" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Years of Experience *</label>
+                        <input type="number" step="0.1" min="0" class="form-control" id="reg_yearOfExperience" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Role Name *</label>
+                        <input type="text" class="form-control" id="reg_roleName" placeholder="e.g. EMPLOYEE" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Register</button>
+            </form>
+            <div id="registerMsg" class="msg mt-3"></div>
+            <hr>
+            <p class="mb-0">Already have an account? <a href="#" id="showLoginLink">Back to login</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    // If already logged in, skip straight to the right page
+    if (getStoredToken()) {
+        window.location.href = (getStoredRole() === "ADMIN") ? "admin.html" : "dashboard.html";
+    }
+
+    document.getElementById("showRegisterLink").addEventListener("click", function (e) {
+        e.preventDefault();
+        document.getElementById("loginCard").style.display = "none";
+        document.getElementById("registerCard").style.display = "block";
+    });
+
+    document.getElementById("showLoginLink").addEventListener("click", function (e) {
+        e.preventDefault();
+        document.getElementById("registerCard").style.display = "none";
+        document.getElementById("loginCard").style.display = "block";
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const msgEl = document.getElementById("loginMsg");
+        const email = document.getElementById("login_email").value;
+        const password = document.getElementById("login_password").value;
+        try {
+            const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                showMsg(msgEl, data.message || "Invalid email or password", true);
+                return;
+            }
+            setSession(data.token, email, data.roleName, data.employeeId);
+            window.location.href = (data.roleName === "ADMIN") ? "admin.html" : "dashboard.html";
+        } catch (err) {
+            showMsg(msgEl, "Could not reach the server. Is it running on port 8080?", true);
+        }
+    });
+
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const msgEl = document.getElementById("registerMsg");
+        const body = {
+            firstName: document.getElementById("reg_firstName").value,
+            lastName: document.getElementById("reg_lastName").value,
+            email: document.getElementById("reg_email").value,
+            password: document.getElementById("reg_password").value,
+            mobile: Number(document.getElementById("reg_mobile").value),
+            dateOfJoining: document.getElementById("reg_dateOfJoining").value,
+            yearOfExperience: Number(document.getElementById("reg_yearOfExperience").value),
+            reportingTo: null,
+            roleName: document.getElementById("reg_roleName").value,
+            skillName: null,
+            proficiencyName: null,
+            skillExperience: null,
+            projects: [],
+            certifications: []
+        };
+        postJson(`${BASE_URL}/api/profile/submit`, body, msgEl, (data) => {
+            showMsg(msgEl, data + " You can log in now.", false);
+            document.getElementById("registerForm").reset();
+        }, false); // no token needed - this endpoint is public
+    });
+</script>
+</body>
+</html>

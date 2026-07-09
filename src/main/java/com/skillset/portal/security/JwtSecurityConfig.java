@@ -39,7 +39,7 @@ public class JwtSecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disabled for stateless APIs
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No sessions
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/static/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/dashboard.html", "/admin.html", "/static/**", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/profile/submit").permitAll()
                         .anyRequest().authenticated()
                 );

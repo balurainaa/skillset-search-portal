@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +18,6 @@ import java.util.List;
 @RestController
 
 @RequestMapping("/api/skills")
-@CrossOrigin(origins = " *")
 public class EmployeeSkillController {
 
     @Autowired
@@ -25,6 +25,7 @@ public class EmployeeSkillController {
     private EmployeeSkillService employeeSkillService;
 
     @PostMapping
+   @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #requestDto.employeeId))")
 
     public EmployeeSkillDto addSkill(@Valid @RequestBody AddSkillRequestDto requestDto) {
 
@@ -33,7 +34,7 @@ public class EmployeeSkillController {
     }
 
     @GetMapping("/search")
-
+    @PreAuthorize("hasRole('ADMIN')")
     public List<EmployeeSkillDto> searchBySkill(@RequestParam String skillName) {
 
         return employeeSkillService.searchBySkill(skillName);

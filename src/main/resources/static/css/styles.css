@@ -1,0 +1,21 @@
+body {
+    background: #f5f6f8;
+    padding-bottom: 60px;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.card {
+    margin-top: 20px;
+}
+
+.tab-pane {
+    padding-top: 20px;
+}
+
+#resultsTable,
+#profileCard {
+    display: none;
+}

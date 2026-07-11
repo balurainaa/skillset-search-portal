@@ -1,6 +1,7 @@
 package com.skillset.portal.controller;
 
 import com.skillset.portal.dto.LoginRequestDto;
+import com.skillset.portal.dto.RegisterRequestDto;
 import com.skillset.portal.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +17,14 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    // --- THE MISSING REGISTER METHOD YOU NEED TO ADD ---
+    // Register Controller
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Map<String, String> registerData) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequestDto registerData) {
         Map<String, String> response = new HashMap<>();
 
         try {
             // Call the service to encrypt and save the user
             authService.register(registerData);
-
             response.put("message", "User registered successfully!");
             return ResponseEntity.ok(response);
 

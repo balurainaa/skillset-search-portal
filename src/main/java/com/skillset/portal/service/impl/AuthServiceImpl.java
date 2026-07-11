@@ -1,6 +1,7 @@
 package com.skillset.portal.service.impl;
 
 import com.skillset.portal.dto.LoginRequestDto;
+import com.skillset.portal.dto.RegisterRequestDto;
 import com.skillset.portal.entity.Employee;
 import com.skillset.portal.entity.UserToken;
 import com.skillset.portal.repository.EmployeeRepository;
@@ -21,33 +22,32 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    @Autowired
-    private UserTokenRepository userTokenRepository;
+    //@Autowired
+    //private UserTokenRepository userTokenRepository;
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider; // Using this instance!
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Register service
     @Override
     @Transactional
-    public void register(Map<String, String> registerData) {
-        String email = registerData.get("email");
-        String password = registerData.get("password");
-        String firstName = registerData.get("firstName");
-        String lastName = registerData.get("lastName");
+    public void register(RegisterRequestDto registerData) {
+        String password = registerData.getPassword();
+        String firstName = registerData.getFirstName();
+        String lastName = registerData.getLastname();
 
-        if (employeeRepository.findByEmail(email).isPresent()) {
+        if(employeeRepository.findByEmail(registerData.getEmail()).isPresent()) {
             throw new RuntimeException("Email is already registered!");
         }
 
         Employee employee = new Employee();
-        employee.setEmail(email);
+        employee.setEmail(registerData.getEmail());
         employee.setPassword(passwordEncoder.encode(password));
-
-        if(firstName != null) employee.setFirstName(firstName);
-        if(lastName != null) employee.setLastName(lastName);
+        employee.setFirstName(firstName);
+        employee.setLastName(lastName);
 
         employeeRepository.save(employee);
     }

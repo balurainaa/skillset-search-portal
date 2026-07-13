@@ -30,4 +30,6 @@ public interface EmployeeProfileService {
 
     String deleteEmployee(Integer employeeId);
 
+    EmployeeProfileDto getEmployeeProfileByEmail(String email);
+
 }

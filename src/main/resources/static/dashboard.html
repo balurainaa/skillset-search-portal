@@ -21,7 +21,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#search" type="button">Search by Skill</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#project" type="button">Add Project</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#certification" type="button">Add Certification</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile" type="button">View Profile</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile" type="button">My Profile</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#updateProfile" type="button">Update Profile</button></li>
     </ul>
     <div class="tab-content">
@@ -127,34 +127,26 @@
             </div>
         </div>
 
-        <!-- View Profile -->
+        <!-- View Profile (auto-loads your own profile - no lookup needed) -->
         <div class="tab-pane fade" id="profile">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">View Employee Profile</h5>
-                    <form id="profileForm" class="row g-3">
-                        <div class="col-md-8">
-                            <input type="number" class="form-control" id="profile_employeeId" placeholder="Employee ID" required>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary w-100">Load Profile</button>
-                        </div>
-                    </form>
-                    <div id="profileMsg" class="msg mt-3"></div>
-                    <div id="profileCard" class="mt-3">
-                        <h6 id="profileName"></h6>
-                        <p class="mb-1"><strong>Email:</strong> <span id="profileEmail"></span></p>
-                        <p class="mb-1"><strong>Mobile:</strong> <span id="profileMobile"></span></p>
-                        <p class="mb-3"><strong>Role:</strong> <span id="profileRole"></span></p>
+                    <h5 class="card-title">My Profile</h5>
+                    <div id="myProfileMsg" class="msg mt-3"></div>
+                    <div id="myProfileCard" class="mt-3">
+                        <h6 id="myProfileName"></h6>
+                        <p class="mb-1"><strong>Email:</strong> <span id="myProfileEmail"></span></p>
+                        <p class="mb-1"><strong>Mobile:</strong> <span id="myProfileMobile"></span></p>
+                        <p class="mb-3"><strong>Role:</strong> <span id="myProfileRole"></span></p>
                         <strong>Skills</strong>
                         <table class="table table-sm table-bordered">
                             <thead class="table-light"><tr><th>Skill</th><th>Proficiency</th><th>Years Worked</th></tr></thead>
-                            <tbody id="profileSkillsBody"></tbody>
+                            <tbody id="myProfileSkillsBody"></tbody>
                         </table>
                         <strong>Projects</strong>
-                        <ul id="profileProjectsList" class="list-group list-group-flush mb-3"></ul>
+                        <ul id="myProfileProjectsList" class="list-group list-group-flush mb-3"></ul>
                         <strong>Certifications</strong>
-                        <ul id="profileCertsList" class="list-group list-group-flush"></ul>
+                        <ul id="myProfileCertsList" class="list-group list-group-flush"></ul>
                     </div>
                 </div>
             </div>

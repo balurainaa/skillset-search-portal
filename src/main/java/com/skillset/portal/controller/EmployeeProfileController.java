@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import org.springframework.security.core.Authentication;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,11 +49,22 @@ public class EmployeeProfileController {
     // 2. Fetch Complete Aggregated Profile (The Profile GET View)
 
     @GetMapping("/{employeeId}")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #employeeId))")
 
     public EmployeeProfileDto getEmployeeProfile(@PathVariable Integer employeeId) {
 
         return employeeProfileService.getEmployeeProfile(employeeId);
+
+    }
+
+    // 2b. Fetch the logged-in user's own profile - identity comes from the JWT, not a client-supplied ID
+
+    @GetMapping("/me")
+
+    public EmployeeProfileDto getMyProfile(Authentication authentication) {
+
+        String email = authentication.getName();
+
+        return employeeProfileService.getEmployeeProfileByEmail(email);
 
     }
 
@@ -86,7 +99,9 @@ public class EmployeeProfileController {
     // 5. Individual Component Actions (Legacy endpoints)
 
     @PostMapping("/role")
+
     @PreAuthorize("hasRole('ADMIN')")
+
     public String assignRole(@RequestParam Integer employeeId, @RequestParam String roleName) {
 
         return employeeProfileService.assignRole(employeeId, roleName);
@@ -94,7 +109,9 @@ public class EmployeeProfileController {
     }
 
     @PostMapping("/project")
-    @PreAuthorize("hasRole('ADMIN')")
+
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #projectRequest.employeeId))")
+
     public String addProject(@Valid @RequestBody AddProjectRequestDto projectRequest) {
 
         return employeeProfileService.addProject(projectRequest);
@@ -102,6 +119,7 @@ public class EmployeeProfileController {
     }
 
     @PostMapping("/certification")
+
     @PreAuthorize("hasRole('ADMIN') or (hasRole('EMPLOYEE') and @securityService.isOwnProfile(authentication, #certRequest.employeeId))")
 
     public String addCertification(@Valid @RequestBody AddCertificationRequestDto certRequest) {

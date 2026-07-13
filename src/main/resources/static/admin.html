@@ -251,11 +251,33 @@
             </div>
         </div>
 
-        <!-- View Profile -->
+        <!-- View Profile: My Profile (auto-loaded) + Look Up Any Employee (manual, admin only) -->
         <div class="tab-pane fade" id="profile">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">View Employee Profile</h5>
+                    <h5 class="card-title">My Profile</h5>
+                    <div id="myProfileMsg" class="msg mt-3"></div>
+                    <div id="myProfileCard" class="mt-3">
+                        <h6 id="myProfileName"></h6>
+                        <p class="mb-1"><strong>Email:</strong> <span id="myProfileEmail"></span></p>
+                        <p class="mb-1"><strong>Mobile:</strong> <span id="myProfileMobile"></span></p>
+                        <p class="mb-3"><strong>Role:</strong> <span id="myProfileRole"></span></p>
+                        <strong>Skills</strong>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light"><tr><th>Skill</th><th>Proficiency</th><th>Years Worked</th></tr></thead>
+                            <tbody id="myProfileSkillsBody"></tbody>
+                        </table>
+                        <strong>Projects</strong>
+                        <ul id="myProfileProjectsList" class="list-group list-group-flush mb-3"></ul>
+                        <strong>Certifications</strong>
+                        <ul id="myProfileCertsList" class="list-group list-group-flush"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Look Up Any Employee</h5>
                     <form id="profileForm" class="row g-3">
                         <div class="col-md-8">
                             <input type="number" class="form-control" id="profile_employeeId" placeholder="Employee ID" required>

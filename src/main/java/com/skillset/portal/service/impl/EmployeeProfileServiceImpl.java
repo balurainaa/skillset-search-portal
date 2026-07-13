@@ -424,4 +424,16 @@ public class EmployeeProfileServiceImpl implements EmployeeProfileService {
 
     }
 
+    @Override
+
+    public EmployeeProfileDto getEmployeeProfileByEmail(String email) {
+
+        Employee employee = employeeRepository.findByEmail(email)
+
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        return getEmployeeProfile(employee.getEmployeeId());
+
+    }
+
 }
